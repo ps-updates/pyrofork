@@ -30,6 +30,12 @@ class KeyboardButton(Object):
         text (``str``):
             Text of the button. If none of the optional fields are used, it will be sent as a message when
             the button is pressed.
+            
+        icon_custom_emoji_id (``str``, *optional*):
+            Identifier of the custom emoji that must be shown on the button.
+
+        style (:obj:`~pyrogram.enums.ButtonStyle`, *optional*):
+            Style of the button.
 
         request_contact (``bool``, *optional*):
             If True, the user's phone number will be sent as a contact when the button is pressed.
@@ -57,6 +63,8 @@ class KeyboardButton(Object):
     def __init__(
         self,
         text: str,
+        icon_custom_emoji_id: Optional[str] = None,
+        style: "enums.ButtonStyle" = enums.ButtonStyle.DEFAULT,
         request_contact: bool = None,
         request_location: bool = None,
         request_chat: Union["types.RequestPeerTypeChat","types.RequestPeerTypeChannel"] = None,
@@ -66,6 +74,8 @@ class KeyboardButton(Object):
         super().__init__()
 
         self.text = str(text)
+        self.icon_custom_emoji_id = icon_custom_emoji_id
+        self.style = style
         self.request_contact = request_contact
         self.request_location = request_location
         self.request_chat = request_chat
@@ -74,18 +84,40 @@ class KeyboardButton(Object):
 
     @staticmethod
     def read(b):
+        raw_style: "raw.types.KeyboardButtonStyle" = getattr(b, "style", None)
+        button_style = enums.ButtonStyle.DEFAULT
+        icon_custom_emoji_id = None
+
+        if raw_style is not None:
+            if raw_style.bg_primary:
+                button_style = enums.ButtonStyle.PRIMARY
+            elif raw_style.bg_danger:
+                button_style = enums.ButtonStyle.DANGER
+            elif raw_style.bg_success:
+                button_style = enums.ButtonStyle.SUCCESS
+            elif raw_style.icon:
+                icon_custom_emoji_id = str(raw_style.icon)
+                
         if isinstance(b, raw.types.KeyboardButton):
-            return b.text
+            return KeyboardButton(
+                text=b.text,
+                style=button_style,
+                icon_custom_emoji_id=icon_custom_emoji_id
+            )
 
         if isinstance(b, raw.types.KeyboardButtonRequestPhone):
             return KeyboardButton(
                 text=b.text,
+                style=button_style,
+                icon_custom_emoji_id=icon_custom_emoji_id,
                 request_contact=True
             )
 
         if isinstance(b, raw.types.KeyboardButtonRequestGeoLocation):
             return KeyboardButton(
                 text=b.text,
+                style=button_style,
+                icon_custom_emoji_id=icon_custom_emoji_id,
                 request_location=True
             )
 
@@ -94,7 +126,9 @@ class KeyboardButton(Object):
                 text=b.text,
                 web_app=types.WebAppInfo(
                     url=b.url
-                )
+                ),
+                style=button_style,
+                icon_custom_emoji_id=icon_custom_emoji_id
             )
 
         if isinstance(b, raw.types.KeyboardButtonRequestPeer):
@@ -109,7 +143,9 @@ class KeyboardButton(Object):
                         max=b.max_quantity,
                         user_privileges=user_privileges,
                         bot_privileges=bot_privileges
-                    )
+                    ),
+                    style=button_style,
+                    icon_custom_emoji_id=icon_custom_emoji_id
                 )
             if isinstance(b.peer_type, raw.types.RequestPeerTypeChat):
                 user_privileges = getattr(b.peer_type, "user_admin_rights", None)
@@ -124,7 +160,9 @@ class KeyboardButton(Object):
                         max=b.max_quantity,
                         user_privileges=user_privileges,
                         bot_privileges=bot_privileges
-                    )
+                    ),
+                    style=button_style,
+                    icon_custom_emoji_id=icon_custom_emoji_id
                 )
 
             if isinstance(b.peer_type, raw.types.RequestPeerTypeUser):
@@ -134,14 +172,23 @@ class KeyboardButton(Object):
                         is_bot=b.peer_type.bot,
                         is_premium=b.peer_type.premium,
                         max=b.max_quantity
-                    )
+                    ),
+                    style=button_style,
+                    icon_custom_emoji_id=icon_custom_emoji_id
             )
 
     def write(self):
+        style = raw.types.KeyboardButtonStyle(
+            bg_primary=self.style == enums.ButtonStyle.PRIMARY,
+            bg_danger=self.style == enums.ButtonStyle.DANGER,
+            bg_success=self.style == enums.ButtonStyle.SUCCESS,
+            icon=int(self.icon_custom_emoji_id) if self.icon_custom_emoji_id is not None else None
+        ) if self.style != enums.ButtonStyle.DEFAULT or self.icon_custom_emoji_id is not None else None
+        
         if self.request_contact:
-            return raw.types.KeyboardButtonRequestPhone(text=self.text)
+            return raw.types.KeyboardButtonRequestPhone(text=self.text, style=style)
         elif self.request_location:
-            return raw.types.KeyboardButtonRequestGeoLocation(text=self.text)
+            return raw.types.KeyboardButtonRequestGeoLocation(text=self.text, style=style)
         elif self.request_chat:
             user_privileges = self.request_chat.user_privileges
             bot_privileges = self.request_chat.bot_privileges
@@ -193,7 +240,8 @@ class KeyboardButton(Object):
                     max_quantity=self.request_chat.max,
                     name_requested=self.request_chat.is_name_requested,
                     username_requested=self.request_chat.is_username_requested,
-                    photo_requested=self.request_chat.is_photo_requested
+                    photo_requested=self.request_chat.is_photo_requested,
+                    style=style
                 )
             return raw.types.InputKeyboardButtonRequestPeer(
                 text=self.text,
@@ -209,7 +257,8 @@ class KeyboardButton(Object):
                 max_quantity=self.request_chat.max,
                 name_requested=self.request_chat.is_name_requested,
                 username_requested=self.request_chat.is_username_requested,
-                photo_requested=self.request_chat.is_photo_requested
+                photo_requested=self.request_chat.is_photo_requested,
+                style=style
             )
         elif self.request_user:
             return raw.types.InputKeyboardButtonRequestPeer(
@@ -222,9 +271,10 @@ class KeyboardButton(Object):
                 max_quantity=self.request_user.max,
                 name_requested=self.request_user.is_name_requested,
                 username_requested=self.request_user.is_username_requested,
-                photo_requested=self.request_user.is_photo_requested
+                photo_requested=self.request_user.is_photo_requested,
+                style=style
             )
         elif self.web_app:
-            return raw.types.KeyboardButtonSimpleWebView(text=self.text, url=self.web_app.url)
+            return raw.types.KeyboardButtonSimpleWebView(text=self.text, url=self.web_app.url, style=style)
         else:
-            return raw.types.KeyboardButton(text=self.text)
+            return raw.types.KeyboardButton(text=self.text, style=style)
