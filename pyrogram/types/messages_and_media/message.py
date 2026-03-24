@@ -230,6 +230,10 @@ class Message(Object, Update):
         web_page_preview (:obj:`~pyrogram.types.WebPagePreview`, *optional*):
             Message is a web page preview, information about the web page preview message.
 
+        link_preview_options (:obj:`~pyrogram.types.LinkPreviewOptions`, *optional*):
+            Options used for link preview generation for the message.
+            
+
         caption (``str``, *optional*):
             Caption for the audio, document, photo, video or voice, 0-1024 characters.
             If the message contains caption entities (bold, italic, ...) you can access *caption.markdown* or
@@ -510,6 +514,7 @@ class Message(Object, Update):
         voice: "types.Voice" = None,
         video_note: "types.VideoNote" = None,
         web_page_preview: "types.WebPagePreview" = None,
+        link_preview_options: Optional["types.LinkPreviewOptions"] = None,
         caption: Str = None,
         contact: "types.Contact" = None,
         location: "types.Location" = None,
@@ -632,6 +637,7 @@ class Message(Object, Update):
         self.voice = voice
         self.video_note = video_note
         self.web_page_preview = web_page_preview
+        self.link_preview_options = link_preview_options
         self.caption = caption
         self.contact = contact
         self.location = location
@@ -1078,7 +1084,8 @@ class Message(Object, Update):
             video = None
             alternative_videos = []
             video_note = None
-            web_page_preview = None
+            web_page_preview = None,
+            link_preview_options = None
             sticker = None
             document = None
             poll = None
@@ -1196,6 +1203,11 @@ class Message(Object, Update):
                 else:
                     media = None
 
+            link_preview_options = types.LinkPreviewOptions._parse(
+                media,
+                getattr(getattr(media, "webpage", None), "url", utils.get_first_url(message.message)),
+                message.invert_media
+            )
             reply_markup = message.reply_markup
 
             if reply_markup:
@@ -1280,6 +1292,7 @@ class Message(Object, Update):
                 web_page_preview=web_page_preview,
                 sticker=sticker,
                 document=document,
+                link_preview_options=link_preview_options,
                 poll=poll,
                 dice=dice,
                 views=message.views,
@@ -1487,6 +1500,7 @@ class Message(Object, Update):
         quote: bool = None,
         parse_mode: Optional["enums.ParseMode"] = None,
         entities: List["types.MessageEntity"] = None,
+        link_preview_options: Optional["types.LinkPreviewOptions"] = None,
         disable_web_page_preview: bool = None,
         disable_notification: bool = None,
         reply_to_message_id: int = None,
@@ -1538,6 +1552,9 @@ class Message(Object, Update):
 
             disable_web_page_preview (``bool``, *optional*):
                 Disables link previews for links in this message.
+
+            link_preview_options (:obj:`~pyrogram.types.LinkPreviewOptions`, *optional*):
+                Options used for link preview generation for the message.
 
             disable_notification (``bool``, *optional*):
                 Sends the message silently.
@@ -1614,6 +1631,7 @@ class Message(Object, Update):
             parse_mode=parse_mode,
             entities=entities,
             disable_web_page_preview=disable_web_page_preview,
+            link_preview_options=link_preview_options,
             disable_notification=disable_notification,
             message_thread_id=message_thread_id,
             reply_to_message_id=reply_to_message_id,
@@ -2945,8 +2963,8 @@ class Message(Object, Update):
             single messages sent.
 
         Raises:
-            RPCError: In case of a Telegram RPC error.
-        """
+            RPCError: In case of a Telegram RPC error."""
+        
         if quote is None:
             quote = self.chat.type != enums.ChatType.PRIVATE
 
@@ -4447,6 +4465,7 @@ class Message(Object, Update):
         text: str,
         parse_mode: Optional["enums.ParseMode"] = None,
         entities: List["types.MessageEntity"] = None,
+        link_preview_options: Optional["types.LinkPreviewOptions"] = None,
         disable_web_page_preview: bool = None,
         invert_media: bool = None,
         reply_markup: "types.InlineKeyboardMarkup" = None,
@@ -4482,6 +4501,9 @@ class Message(Object, Update):
             entities (List of :obj:`~pyrogram.types.MessageEntity`):
                 List of special entities that appear in message text, which can be specified instead of *parse_mode*.
 
+            link_preview_options (:obj:`~pyrogram.types.LinkPreviewOptions`, *optional*):
+                Options used for link preview generation for the message.
+
             disable_web_page_preview (``bool``, *optional*):
                 Disables link previews for links in this message.
 
@@ -4507,6 +4529,7 @@ class Message(Object, Update):
             text=text,
             parse_mode=parse_mode,
             entities=entities,
+            link_preview_options=link_preview_options,
             disable_web_page_preview=disable_web_page_preview,
             invert_media=invert_media,
             reply_markup=reply_markup,
@@ -4883,6 +4906,7 @@ class Message(Object, Update):
                 entities=self.entities,
                 parse_mode=enums.ParseMode.DISABLED,
                 disable_web_page_preview=not self.web_page_preview,
+                link_preview_options=types.LinkPreviewOptions(is_disabled=not self.web_page_preview),
                 disable_notification=disable_notification,
                 message_thread_id=message_thread_id,
                 reply_to_message_id=reply_to_message_id,
