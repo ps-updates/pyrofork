@@ -20,8 +20,7 @@
 from typing import Union, Optional
 
 import pyrogram
-from pyrogram import raw
-from pyrogram import types
+from pyrogram import raw, types, enums
 from ..object import Object
 
 
