@@ -19,6 +19,7 @@
 
 from .business_schedule import BusinessSchedule
 from .chat_action import ChatAction
+from .button_style import ButtonStyle
 from .chat_event_action import ChatEventAction
 from .chat_join_type import ChatJoinType
 from .chat_member_status import ChatMemberStatus
@@ -46,6 +47,7 @@ from .story_privacy import StoryPrivacy
 from .user_status import UserStatus
 
 __all__ = [
+    'ButtonStyle',
     'BusinessSchedule',
     'ChatAction', 
     'ChatEventAction', 
