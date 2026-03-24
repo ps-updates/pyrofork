@@ -32,7 +32,8 @@ from .game import Game
 from .giveaway import Giveaway
 from .giveaway_launched import GiveawayLaunched
 from .giveaway_result import GiveawayResult
-from .location import Location
+from .location import Location,
+from .link_preview_options import LinkPreviewOptions
 from .media_area import MediaArea
 from .media_area_channel_post import MediaAreaChannelPost
 from .media_area_coordinates import MediaAreaCoordinates
@@ -101,6 +102,7 @@ __all__ = [
     "GiveawayLaunched",
     "GiveawayResult",
     "Location",
+    "LinkPreviewOptions",
     "MediaArea",
     "MediaAreaChannelPost",
     "MediaAreaCoordinates",
