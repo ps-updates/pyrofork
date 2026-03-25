@@ -16,33 +16,11 @@
 #  You should have received a copy of the GNU Lesser General Public License
 #  along with Pyrogram.  If not, see <http://www.gnu.org/licenses/>.
 
-from io import BytesIO
-from typing import Any
+from typing import get_args
 
-from ..tl_object import TLObject
+class BaseTypeMeta(type):
+    def __instancecheck__(cls, instance):
+        return isinstance(instance, get_args(cls.__union_types__))
 
-
-class BoolFalse(bytes, TLObject):
-    ID = 0xBC799737
-    value = False
-
-    @classmethod
-    def read(cls, *args: Any) -> bool:
-        return cls.value
-
-    def __new__(cls) -> bytes:  # type: ignore
-        return cls.ID.to_bytes(4, "little")
-
-
-class BoolTrue(BoolFalse):
-    ID = 0x997275B5
-    value = True
-
-
-class Bool(bytes, TLObject):
-    @classmethod
-    def read(cls, data: BytesIO, *args: Any) -> bool:
-        return int.from_bytes(data.read(4), "little") == BoolTrue.ID
-
-    def __new__(cls, value: bool) -> bytes:  # type: ignore
-        return BoolTrue() if value else BoolFalse()
+    def __subclasscheck__(cls, subclass):
+        return issubclass(subclass, get_args(cls.__union_types__))
