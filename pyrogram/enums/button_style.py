@@ -16,33 +16,22 @@
 #  You should have received a copy of the GNU Lesser General Public License
 #  along with Pyrogram.  If not, see <http://www.gnu.org/licenses/>.
 
-from io import BytesIO
-from typing import Any
+from enum import auto
 
-from ..tl_object import TLObject
-
-
-class BoolFalse(bytes, TLObject):
-    ID = 0xBC799737
-    value = False
-
-    @classmethod
-    def read(cls, *args: Any) -> bool:
-        return cls.value
-
-    def __new__(cls) -> bytes:  # type: ignore
-        return cls.ID.to_bytes(4, "little")
+from .auto_name import AutoName
 
 
-class BoolTrue(BoolFalse):
-    ID = 0x997275B5
-    value = True
+class ButtonStyle(AutoName):
+    """Button style type enumeration used in :obj:`~pyrogram.types.KeyboardButton` and :obj:`~pyrogram.types.InlineKeyboardButton`."""
 
+    DEFAULT = auto()
+    "The button has default style"
 
-class Bool(bytes, TLObject):
-    @classmethod
-    def read(cls, data: BytesIO, *args: Any) -> bool:
-        return int.from_bytes(data.read(4), "little") == BoolTrue.ID
+    PRIMARY = auto()
+    "The button has dark blue color"
 
-    def __new__(cls, value: bool) -> bytes:  # type: ignore
-        return BoolTrue() if value else BoolFalse()
+    DANGER = auto()
+    "The button has red color"
+
+    SUCCESS = auto()
+    "The button has green color"

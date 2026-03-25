@@ -36,15 +36,11 @@ from pathlib import Path
 from typing import Union, List, Optional, Callable, AsyncGenerator, Tuple
 
 import pyrogram
-from pyrogram import __version__, __license__
-from pyrogram import enums
-from pyrogram import raw
-from pyrogram import types
-from pyrogram import utils
+from pyrogram import __version__, __license__, enums, raw, types, utils
 from pyrogram.crypto import aes
-from pyrogram.errors import CDNFileHashMismatch
 from pyrogram.errors import (
     SessionPasswordNeeded,
+    CDNFileHashMismatch,
     VolumeLocNotFound, ChannelPrivate,
     BadRequest, ChannelInvalid, PersistentTimestampInvalid, PersistentTimestampOutdated
 )
@@ -52,7 +48,7 @@ from pyrogram.handlers.handler import Handler
 from pyrogram.methods import Methods
 from pyrogram.session import Auth, Session
 from pyrogram.storage import FileStorage, MemoryStorage, Storage
-from pyrogram.types import User
+from pyrogram.types import User, LinkPreviewOptions
 from pyrogram.utils import ainput
 from .connection import Connection
 from .connection.transport import TCPAbridged
@@ -220,6 +216,9 @@ class Client(Methods):
         client_platform (:obj:`~pyrogram.enums.ClientPlatform`, *optional*):
             The platform where this client is running.
             Defaults to 'other'
+            
+        link_preview_options (:obj:`~pyrogram.types.LinkPreviewOptions`, *optional*):
+            Global link preview options for the client.
     """
 
     APP_VERSION = f"Pyrogram {__version__}"
@@ -281,6 +280,7 @@ class Client(Methods):
         hide_password: Optional[bool] = True,
         max_concurrent_transmissions: int = MAX_CONCURRENT_TRANSMISSIONS,
         client_platform: "enums.ClientPlatform" = enums.ClientPlatform.OTHER,
+        link_preview_options: Optional[LinkPreviewOptions] = None,
         max_message_cache_size: int = MAX_CACHE_SIZE,
         max_business_user_connection_cache_size: int = MAX_CACHE_SIZE
     ):
@@ -318,6 +318,7 @@ class Client(Methods):
         self.hide_password = hide_password
         self.max_concurrent_transmissions = max_concurrent_transmissions
         self.client_platform = client_platform
+        self.link_preview_options = link_preview_options
         self.max_message_cache_size = max_message_cache_size
         self.max_message_cache_size = max_message_cache_size
         self.max_business_user_connection_cache_size = max_business_user_connection_cache_size
